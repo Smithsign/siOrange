@@ -84,11 +84,10 @@ button:active {
 #orange {
     position: absolute;
     font-size: 2.5rem;
-    left: 50px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 25%;
     z-index: 10;
     transition: transform 0.1s ease;
+    transform: translateY(-50%);
 }
 
 .pipe {
@@ -117,6 +116,19 @@ button:active {
     margin-bottom: 20px;
 }
 
+#countdown {
+    font-size: 5rem;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
 @media (max-width: 500px) {
     #game-container {
         height: 100vh;
@@ -131,5 +143,9 @@ button:active {
     button {
         padding: 10px 20px;
         font-size: 1rem;
+    }
+    
+    #orange {
+        left: 20%;
     }
 }
