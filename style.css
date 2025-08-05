@@ -1,0 +1,135 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #ff9966, #ff5e62);
+    overflow: hidden;
+    touch-action: manipulation;
+}
+
+#game-container {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    height: 600px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.hidden {
+    display: none;
+}
+
+h1, h2 {
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 3rem;
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+button {
+    background-color: #ff8c00;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    cursor: pointer;
+    margin: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    background-color: #ff7700;
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+#orange {
+    position: absolute;
+    font-size: 2.5rem;
+    left: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    transition: transform 0.1s ease;
+}
+
+.pipe {
+    position: absolute;
+    width: 60px;
+    background: linear-gradient(to bottom, #ff8c00, #ff6b00);
+    border: 3px solid #ff5500;
+    border-radius: 5px;
+    right: -60px;
+}
+
+#score-display {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2rem;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 5;
+}
+
+#game-over-screen p {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 500px) {
+    #game-container {
+        height: 100vh;
+        max-width: 100%;
+        border-radius: 0;
+    }
+    
+    h1 {
+        font-size: 2.5rem;
+    }
+    
+    button {
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+}
