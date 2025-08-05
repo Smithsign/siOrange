@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>siOrange �</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="start-screen" class="screen">
+            <h1>siOrange 🍊</h1>
+            <button id="start-button">START THE GAME</button>
+        </div>
+        
+        <div id="game-screen" class="screen hidden">
+            <div id="score-display">0</div>
+            <div id="orange">🍊</div>
+            <div id="pipes-container"></div>
+        </div>
+        
+        <div id="game-over-screen" class="screen hidden">
+            <h2>GAME OVER</h2>
+            <p>Your score: <span id="final-score">0</span></p>
+            <button id="try-again-button">Try Again</button>
+            <button id="share-button">Share on X</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
