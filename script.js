@@ -18,11 +18,10 @@ let score = 0;
 let gravity = 0.5;
 let velocity = 0;
 let position = 0;
-let pipeInterval;
-let gameAreaHeight = 600;
-let gameAreaWidth = 400;
-let pipeGap = 200;
-let pipeFrequency = 1500; // milliseconds
+let gameAreaHeight = 400;
+let gameAreaWidth = 800;
+let pipeGap = 180;
+let pipeFrequency = 2000;
 let lastPipeTime = 0;
 let pipes = [];
 let countdown = 3;
@@ -62,6 +61,7 @@ function startCountdown() {
     scoreDisplay.textContent = score;
     position = gameAreaHeight / 2;
     velocity = 0;
+    orange.style.transform = `translateY(${position}px) rotate(0deg)`;
     
     // Clear pipes
     pipesContainer.innerHTML = '';
@@ -134,7 +134,7 @@ function gameLoop() {
 
 function updateOrangePosition() {
     // Keep orange within bounds
-    if (position < 0) position = 0;
+    if (position < 40) position = 40;
     if (position > gameAreaHeight - 40) {
         position = gameAreaHeight - 40;
         if (gameRunning) endGame();
@@ -150,8 +150,12 @@ function flap() {
 }
 
 function createPipe() {
-    const pipeTopHeight = Math.floor(Math.random() * (gameAreaHeight - pipeGap - 100)) + 20;
-    const pipeBottomHeight = gameAreaHeight - pipeTopHeight - pipeGap;
+    const minGap = gameAreaHeight * 0.3;
+    const maxGap = gameAreaHeight * 0.7;
+    const gapPosition = Math.random() * (maxGap - minGap) + minGap;
+    
+    const pipeTopHeight = gapPosition - (pipeGap / 2);
+    const pipeBottomHeight = gameAreaHeight - gapPosition - (pipeGap / 2);
     
     // Create top pipe
     const topPipe = document.createElement('div');
@@ -193,7 +197,7 @@ function movePipes() {
         pipe.element.style.left = `${pipe.x}px`;
         
         // Check if pipe is passed
-        if (!pipe.passed && pipe.x < (gameAreaWidth * 0.25) - 30) { // 25% is orange position, 30 is half pipe width
+        if (!pipe.passed && pipe.x < 100 - 40) {
             if (pipe.top) {
                 score++;
                 scoreDisplay.textContent = score;
@@ -202,7 +206,7 @@ function movePipes() {
         }
         
         // Remove pipes that are off screen
-        if (pipe.x < -60) {
+        if (pipe.x < -80) {
             pipesContainer.removeChild(pipe.element);
             pipes.splice(i, 1);
         }
@@ -210,16 +214,21 @@ function movePipes() {
 }
 
 function checkCollision() {
-    // Orange boundaries (25% from left)
-    const orangeTop = position;
-    const orangeBottom = position + 40;
-    const orangeLeft = gameAreaWidth * 0.25;
-    const orangeRight = gameAreaWidth * 0.25 + 40;
+    // Orange boundaries
+    const orangeTop = position - 20;
+    const orangeBottom = position + 20;
+    const orangeLeft = 100 - 20;
+    const orangeRight = 100 + 20;
+    
+    // Ground/ceiling check
+    if (orangeTop <= 0 || orangeBottom >= gameAreaHeight) {
+        return true;
+    }
     
     // Check pipe collisions
     for (const pipe of pipes) {
         const pipeLeft = pipe.x;
-        const pipeRight = pipe.x + 60;
+        const pipeRight = pipe.x + 80;
         
         // Check if orange is within pipe's x-range
         if (orangeRight > pipeLeft && orangeLeft < pipeRight) {
@@ -250,7 +259,7 @@ function endGame() {
 }
 
 function shareScore() {
-    const tweetText = `I scored ${score} in siOrange 🍊! Try it here: ${window.location.href}`;
+    const tweetText = `I scored ${score} in siOrange �! Try it here: ${window.location.href}`;
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
     window.open(tweetUrl, '_blank');
 }
