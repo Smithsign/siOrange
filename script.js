@@ -38,7 +38,7 @@ function initGameArea() {
     updateOrangePosition();
 }
 
-// **FIXED: Proper Click Controls (Flappy Bird Style)**
+// **FIXED: Smooth Click/Tap Controls**
 function handleInput(e) {
     if (e.type === 'keydown' && e.code !== 'Space') return;
     e.preventDefault();
@@ -46,7 +46,7 @@ function handleInput(e) {
     if (!gameRunning) {
         startGame();
     } else {
-        velocity = -8; // Jump force
+        velocity = -8; // Flappy Bird-style jump
     }
 }
 
@@ -138,7 +138,7 @@ function updateOrangePosition() {
         if (gameRunning) endGame();
     }
     
-    // Apply rotation
+    // Apply rotation (Flappy Bird-style)
     let rotation = velocity * 3;
     rotation = Math.max(-20, Math.min(20, rotation));
     orange.style.transform = `translateY(${position}px) rotate(${rotation}deg)`;
