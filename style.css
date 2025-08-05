@@ -170,3 +170,24 @@ button:active {
         width: 60px;
     }
 }
+
+.pipe {
+    position: absolute;
+    width: 80px;
+    background: linear-gradient(to right, #4CAF50, #2E7D32);
+    border: 3px solid #1B5E20;
+    border-radius: 5px;
+    right: -80px;
+}
+
+.top-pipe {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-top: none;
+}
+
+.bottom-pipe {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom: none;
+}
