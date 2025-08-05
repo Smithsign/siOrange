@@ -16,13 +16,13 @@ const countdownElement = document.getElementById('countdown');
 let gameRunning = false;
 let gameStarted = false;
 let score = 0;
-let gravity = 0.5;
+let gravity = 0.6; // Stronger gravity for Flappy Bird feel
 let velocity = 0;
 let position = 200;
 let gameAreaHeight = 400;
 let gameAreaWidth = 800;
-let pipeGap = 150; // Smaller gap for more challenge
-let pipeFrequency = 1500; // Faster pipe generation
+let pipeGap = 150; // Smaller gap for challenge
+let pipeFrequency = 1500; // Faster pipes
 let lastPipeTime = 0;
 let pipes = [];
 let countdown = 3;
@@ -30,7 +30,6 @@ let countdownInterval;
 let animationFrameId;
 let orangeRadius = 20; // Smaller hitbox
 let lastFrameTime = 0;
-let gameStartTime = 0;
 
 // Initialize game area
 function initGameArea() {
@@ -41,33 +40,34 @@ function initGameArea() {
     updateOrangePosition();
 }
 
-// Event listeners
+// **FIXED: Click/Tap Controls (Flappy Bird-Style)**
+function handleInput(e) {
+    e.preventDefault(); // Prevent scrolling on spacebar
+    
+    if (!gameRunning && !gameStarted) {
+        // First click starts the game
+        gameStarted = true;
+        startGame();
+    } else if (gameRunning) {
+        // Every click makes the orange jump
+        velocity = -9; // Strong upward boost
+    }
+}
+
+// Event Listeners (Click, Touch, Spacebar)
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.key === ' ') {
+        handleInput(e);
+    }
+});
+
+gameScreen.addEventListener('click', handleInput);
+gameScreen.addEventListener('touchstart', handleInput);
+
+// Start Button (Optional)
 startButton.addEventListener('click', startCountdown);
 tryAgainButton.addEventListener('click', startCountdown);
 shareButton.addEventListener('click', shareScore);
-
-// Flappy Bird-style controls
-document.addEventListener('keydown', flap);
-gameScreen.addEventListener('mousedown', flap);
-gameScreen.addEventListener('touchstart', flap);
-
-function flap(e) {
-    // Prevent spacebar from scrolling page
-    if (e && e.key === ' ') {
-        e.preventDefault();
-    }
-    
-    // Only flap if game is running or about to start
-    if (!gameRunning && !gameStarted) {
-        gameStarted = true;
-        startGame();
-    }
-    
-    if (gameRunning) {
-        velocity = -8; // Flappy Bird-style quick jump
-        // Add jump sound effect here if desired
-    }
-}
 
 // Game functions
 function startCountdown() {
@@ -111,7 +111,7 @@ function startCountdown() {
 
 function startGame() {
     gameRunning = true;
-    gameStartTime = performance.now();
+    lastFrameTime = performance.now();
     countdownScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
     
@@ -122,7 +122,6 @@ function startGame() {
     
     // Start game loop
     lastPipeTime = performance.now() - pipeFrequency;
-    lastFrameTime = performance.now();
     gameLoop();
 }
 
@@ -132,7 +131,7 @@ function gameLoop(timestamp) {
     const deltaTime = timestamp - lastFrameTime;
     lastFrameTime = timestamp;
     
-    // Apply gravity (frame-rate independent)
+    // Apply gravity (smooth movement)
     velocity += gravity * (deltaTime / 16.67);
     position += velocity * (deltaTime / 16.67);
     
@@ -171,9 +170,9 @@ function updateOrangePosition() {
         if (gameRunning) endGame();
     }
     
-    // Apply rotation (more dramatic than Flappy Bird)
-    let rotation = velocity * 4;
-    rotation = Math.max(-30, Math.min(90, rotation)); // Limit rotation angles
+    // Apply rotation (like Flappy Bird)
+    let rotation = velocity * 5;
+    rotation = Math.max(-30, Math.min(90, rotation)); // Limit rotation
     orange.style.transform = `translateY(${position}px) rotate(${rotation}deg)`;
 }
 
@@ -185,7 +184,7 @@ function createPipe() {
     const pipeTopHeight = gapPosition - (pipeGap / 2);
     const pipeBottomHeight = gameAreaHeight - gapPosition - (pipeGap / 2);
     
-    // Create top pipe (with cap)
+    // Create top pipe
     const topPipe = document.createElement('div');
     topPipe.className = 'pipe top-pipe';
     topPipe.style.height = `${pipeTopHeight}px`;
@@ -193,7 +192,7 @@ function createPipe() {
     topPipe.style.left = `${gameAreaWidth}px`;
     pipesContainer.appendChild(topPipe);
     
-    // Create bottom pipe (with cap)
+    // Create bottom pipe
     const bottomPipe = document.createElement('div');
     bottomPipe.className = 'pipe bottom-pipe';
     bottomPipe.style.height = `${pipeBottomHeight}px`;
@@ -278,12 +277,10 @@ function endGame() {
     gameScreen.classList.add('hidden');
     gameOverScreen.classList.remove('hidden');
     cancelAnimationFrame(animationFrameId);
-    
-    // Add death sound effect here if desired
 }
 
 function shareScore() {
-    const tweetText = `I scored ${score} in siOrange! Try to beat my score! ${window.location.href}`;
+    const tweetText = `I scored ${score} in siOrange! Can you beat me? ${window.location.href}`;
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
     window.open(tweetUrl, '_blank');
 }
