@@ -14,25 +14,25 @@ const countdownElement = document.getElementById('countdown');
 
 // Game variables
 let gameRunning = false;
+let gameStarted = false;
 let score = 0;
-let gravity = 0.4; // Reduced gravity for better gameplay
+let gravity = 0.5;
 let velocity = 0;
 let position = 200;
 let gameAreaHeight = 400;
 let gameAreaWidth = 800;
-let pipeGap = 180;
-let pipeFrequency = 2000;
+let pipeGap = 150; // Smaller gap for more challenge
+let pipeFrequency = 1500; // Faster pipe generation
 let lastPipeTime = 0;
 let pipes = [];
 let countdown = 3;
 let countdownInterval;
 let animationFrameId;
-let orangeRadius = 25;
+let orangeRadius = 20; // Smaller hitbox
 let lastFrameTime = 0;
-let gravityActive = false;
-let initialBoost = -8;
+let gameStartTime = 0;
 
-// Initialize game area dimensions
+// Initialize game area
 function initGameArea() {
     const container = document.getElementById('game-container');
     gameAreaHeight = container.offsetHeight;
@@ -46,26 +46,38 @@ startButton.addEventListener('click', startCountdown);
 tryAgainButton.addEventListener('click', startCountdown);
 shareButton.addEventListener('click', shareScore);
 
-// Controls
-document.addEventListener('keydown', (e) => {
-    if ((e.code === 'Space' || e.key === ' ' || e.key === 'ArrowUp') && gameRunning) {
-        flap();
-    }
-});
+// Flappy Bird-style controls
+document.addEventListener('keydown', flap);
+gameScreen.addEventListener('mousedown', flap);
+gameScreen.addEventListener('touchstart', flap);
 
-gameScreen.addEventListener('click', () => {
-    if (gameRunning) flap();
-});
+function flap(e) {
+    // Prevent spacebar from scrolling page
+    if (e && e.key === ' ') {
+        e.preventDefault();
+    }
+    
+    // Only flap if game is running or about to start
+    if (!gameRunning && !gameStarted) {
+        gameStarted = true;
+        startGame();
+    }
+    
+    if (gameRunning) {
+        velocity = -8; // Flappy Bird-style quick jump
+        // Add jump sound effect here if desired
+    }
+}
 
 // Game functions
 function startCountdown() {
     // Reset game state
     gameRunning = false;
+    gameStarted = false;
     score = 0;
     scoreDisplay.textContent = score;
     position = gameAreaHeight / 2;
     velocity = 0;
-    gravityActive = false;
     orange.style.transform = `translateY(${position}px) rotate(0deg)`;
     
     // Clear pipes
@@ -91,6 +103,7 @@ function startCountdown() {
         
         if (countdown <= 0) {
             clearInterval(countdownInterval);
+            gameStarted = true;
             startGame();
         }
     }, 1000);
@@ -98,34 +111,30 @@ function startCountdown() {
 
 function startGame() {
     gameRunning = true;
-    lastFrameTime = performance.now();
+    gameStartTime = performance.now();
     countdownScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
     
-    // Initial boost
+    // Initial position
     position = gameAreaHeight / 2;
-    velocity = initialBoost;
-    gravityActive = true;
+    velocity = 0;
     updateOrangePosition();
     
     // Start game loop
     lastPipeTime = performance.now() - pipeFrequency;
+    lastFrameTime = performance.now();
     gameLoop();
 }
 
 function gameLoop(timestamp) {
     if (!gameRunning) return;
     
-    // Calculate delta time for smooth animation
     const deltaTime = timestamp - lastFrameTime;
     lastFrameTime = timestamp;
     
-    // Apply gravity only when active
-    if (gravityActive) {
-        velocity += gravity * (deltaTime / 16.67); // Normalize to 60fps
-    }
-    
-    position += velocity * (deltaTime / 16.67); // Normalize movement
+    // Apply gravity (frame-rate independent)
+    velocity += gravity * (deltaTime / 16.67);
+    position += velocity * (deltaTime / 16.67);
     
     // Update orange position
     updateOrangePosition();
@@ -162,35 +171,31 @@ function updateOrangePosition() {
         if (gameRunning) endGame();
     }
     
-    // Apply rotation
-    const rotation = Math.min(Math.max(velocity * 3, -30), 30);
+    // Apply rotation (more dramatic than Flappy Bird)
+    let rotation = velocity * 4;
+    rotation = Math.max(-30, Math.min(90, rotation)); // Limit rotation angles
     orange.style.transform = `translateY(${position}px) rotate(${rotation}deg)`;
 }
 
-function flap() {
-    velocity = -10; // Consistent flap strength
-    gravityActive = true; // Ensure gravity is always active after first flap
-}
-
 function createPipe() {
-    const minGap = gameAreaHeight * 0.3;
-    const maxGap = gameAreaHeight * 0.7;
+    const minGap = gameAreaHeight * 0.2;
+    const maxGap = gameAreaHeight * 0.5;
     const gapPosition = Math.random() * (maxGap - minGap) + minGap;
     
     const pipeTopHeight = gapPosition - (pipeGap / 2);
     const pipeBottomHeight = gameAreaHeight - gapPosition - (pipeGap / 2);
     
-    // Create top pipe
+    // Create top pipe (with cap)
     const topPipe = document.createElement('div');
-    topPipe.className = 'pipe';
+    topPipe.className = 'pipe top-pipe';
     topPipe.style.height = `${pipeTopHeight}px`;
     topPipe.style.top = '0';
     topPipe.style.left = `${gameAreaWidth}px`;
     pipesContainer.appendChild(topPipe);
     
-    // Create bottom pipe
+    // Create bottom pipe (with cap)
     const bottomPipe = document.createElement('div');
-    bottomPipe.className = 'pipe';
+    bottomPipe.className = 'pipe bottom-pipe';
     bottomPipe.style.height = `${pipeBottomHeight}px`;
     bottomPipe.style.bottom = '0';
     bottomPipe.style.left = `${gameAreaWidth}px`;
@@ -230,8 +235,8 @@ function movePipes() {
                 
                 // Increase difficulty
                 if (score % 5 === 0) {
-                    pipeFrequency = Math.max(1000, pipeFrequency - 100);
-                    pipeGap = Math.max(120, pipeGap - 5);
+                    pipeFrequency = Math.max(1000, pipeFrequency - 50);
+                    pipeGap = Math.max(100, pipeGap - 5);
                 }
             }
         }
@@ -268,18 +273,21 @@ function checkCollision() {
 
 function endGame() {
     gameRunning = false;
+    gameStarted = false;
     finalScoreDisplay.textContent = score;
     gameScreen.classList.add('hidden');
     gameOverScreen.classList.remove('hidden');
     cancelAnimationFrame(animationFrameId);
+    
+    // Add death sound effect here if desired
 }
 
 function shareScore() {
-    const tweetText = `I scored ${score} in siOrange! Try it here: ${window.location.href}`;
+    const tweetText = `I scored ${score} in siOrange! Try to beat my score! ${window.location.href}`;
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
     window.open(tweetUrl, '_blank');
 }
 
-// Initialize
+// Initialize game
 window.addEventListener('load', initGameArea);
 window.addEventListener('resize', initGameArea);
