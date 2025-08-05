@@ -83,12 +83,12 @@ button:active {
 
 #orange {
     position: absolute;
-    font-size: 3rem;
+    width: 50px;
+    height: 50px;
     left: 100px;
-    top: 50%;
-    transform: translateY(-50%);
     z-index: 10;
     transition: transform 0.1s ease;
+    transform: translateY(-50%);
 }
 
 .pipe {
@@ -136,7 +136,8 @@ button:active {
     }
     
     #orange {
-        font-size: 2.5rem;
+        width: 40px;
+        height: 40px;
         left: 80px;
     }
     
@@ -160,8 +161,9 @@ button:active {
     }
     
     #orange {
+        width: 40px;
+        height: 40px;
         left: 60px;
-        font-size: 2.5rem;
     }
     
     .pipe {
