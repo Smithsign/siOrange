@@ -17,7 +17,7 @@ let gameRunning = false;
 let score = 0;
 let gravity = 0.5;
 let velocity = 0;
-let position = 0;
+let position = 200;
 let gameAreaHeight = 400;
 let gameAreaWidth = 800;
 let pipeGap = 180;
@@ -57,6 +57,7 @@ gameScreen.addEventListener('click', () => {
 // Game functions
 function startCountdown() {
     // Reset game state
+    gameRunning = false;
     score = 0;
     scoreDisplay.textContent = score;
     position = gameAreaHeight / 2;
@@ -134,14 +135,14 @@ function gameLoop() {
 
 function updateOrangePosition() {
     // Keep orange within bounds
-    if (position < 40) position = 40;
-    if (position > gameAreaHeight - 40) {
-        position = gameAreaHeight - 40;
+    if (position < 25) position = 25;
+    if (position > gameAreaHeight - 25) {
+        position = gameAreaHeight - 25;
         if (gameRunning) endGame();
     }
     
     // Apply rotation based on velocity
-    const rotation = Math.min(Math.max(velocity * 5, -30), 30);
+    const rotation = Math.min(Math.max(velocity * 3, -30), 30);
     orange.style.transform = `translateY(${position}px) rotate(${rotation}deg)`;
 }
 
@@ -214,11 +215,11 @@ function movePipes() {
 }
 
 function checkCollision() {
-    // Orange boundaries
-    const orangeTop = position - 20;
-    const orangeBottom = position + 20;
-    const orangeLeft = 100 - 20;
-    const orangeRight = 100 + 20;
+    // Orange boundaries (100px from left, 25px radius)
+    const orangeTop = position - 25;
+    const orangeBottom = position + 25;
+    const orangeLeft = 100 - 25;
+    const orangeRight = 100 + 25;
     
     // Ground/ceiling check
     if (orangeTop <= 0 || orangeBottom >= gameAreaHeight) {
@@ -259,7 +260,7 @@ function endGame() {
 }
 
 function shareScore() {
-    const tweetText = `I scored ${score} in siOrange �! Try it here: ${window.location.href}`;
+    const tweetText = `I scored ${score} in siOrange! Try it here: ${window.location.href}`;
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
     window.open(tweetUrl, '_blank');
 }
