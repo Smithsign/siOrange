@@ -17,9 +17,9 @@ body {
 
 #game-container {
     position: relative;
-    width: 100%;
-    max-width: 400px;
-    height: 600px;
+    width: 90%;
+    max-width: 800px;
+    height: 400px;
     background-color: rgba(255, 255, 255, 0.2);
     border-radius: 15px;
     overflow: hidden;
@@ -83,20 +83,21 @@ button:active {
 
 #orange {
     position: absolute;
-    font-size: 2.5rem;
-    left: 25%;
+    font-size: 3rem;
+    left: 100px;
+    top: 50%;
+    transform: translateY(-50%);
     z-index: 10;
     transition: transform 0.1s ease;
-    transform: translateY(-50%);
 }
 
 .pipe {
     position: absolute;
-    width: 60px;
+    width: 80px;
     background: linear-gradient(to bottom, #ff8c00, #ff6b00);
     border: 3px solid #ff5500;
     border-radius: 5px;
-    right: -60px;
+    right: -80px;
 }
 
 #score-display {
@@ -129,15 +130,28 @@ button:active {
     100% { transform: scale(1); }
 }
 
-@media (max-width: 500px) {
+@media (max-height: 500px) {
     #game-container {
-        height: 100vh;
-        max-width: 100%;
-        border-radius: 0;
+        height: 90vh;
+    }
+    
+    #orange {
+        font-size: 2.5rem;
+        left: 80px;
+    }
+    
+    .pipe {
+        width: 60px;
+    }
+}
+
+@media (max-width: 600px) {
+    #game-container {
+        height: 300px;
     }
     
     h1 {
-        font-size: 2.5rem;
+        font-size: 2rem;
     }
     
     button {
@@ -146,6 +160,11 @@ button:active {
     }
     
     #orange {
-        left: 20%;
+        left: 60px;
+        font-size: 2.5rem;
+    }
+    
+    .pipe {
+        width: 60px;
     }
 }
