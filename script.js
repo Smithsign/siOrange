@@ -15,7 +15,7 @@ const countdownElement = document.getElementById('countdown');
 // Game variables
 let gameRunning = false;
 let score = 0;
-let gravity = 0.5;
+let gravity = 0.4; // Reduced gravity for better gameplay
 let velocity = 0;
 let position = 200;
 let gameAreaHeight = 400;
@@ -28,9 +28,9 @@ let countdown = 3;
 let countdownInterval;
 let animationFrameId;
 let orangeRadius = 25;
-let gameStartTime = 0;
-let gravityDelay = 500; // 0.5 second delay before gravity starts
-let initialBoost = -8; // Initial upward boost when game starts
+let lastFrameTime = 0;
+let gravityActive = false;
+let initialBoost = -8;
 
 // Initialize game area dimensions
 function initGameArea() {
@@ -46,7 +46,7 @@ startButton.addEventListener('click', startCountdown);
 tryAgainButton.addEventListener('click', startCountdown);
 shareButton.addEventListener('click', shareScore);
 
-// Keyboard and touch controls
+// Controls
 document.addEventListener('keydown', (e) => {
     if ((e.code === 'Space' || e.key === ' ' || e.key === 'ArrowUp') && gameRunning) {
         flap();
@@ -54,9 +54,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 gameScreen.addEventListener('click', () => {
-    if (gameRunning) {
-        flap();
-    }
+    if (gameRunning) flap();
 });
 
 // Game functions
@@ -67,16 +65,15 @@ function startCountdown() {
     scoreDisplay.textContent = score;
     position = gameAreaHeight / 2;
     velocity = 0;
+    gravityActive = false;
     orange.style.transform = `translateY(${position}px) rotate(0deg)`;
     
     // Clear pipes
     pipesContainer.innerHTML = '';
     pipes = [];
     
-    // Cancel any existing animation frame
-    if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-    }
+    // Cancel animation frame
+    cancelAnimationFrame(animationFrameId);
     
     // Show countdown screen
     startScreen.classList.add('hidden');
@@ -101,46 +98,48 @@ function startCountdown() {
 
 function startGame() {
     gameRunning = true;
-    gameStartTime = Date.now();
+    lastFrameTime = performance.now();
     countdownScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
     
-    // Reset orange position with initial upward boost
+    // Initial boost
     position = gameAreaHeight / 2;
     velocity = initialBoost;
+    gravityActive = true;
     updateOrangePosition();
     
     // Start game loop
-    lastPipeTime = Date.now() - pipeFrequency;
+    lastPipeTime = performance.now() - pipeFrequency;
     gameLoop();
 }
 
-function gameLoop() {
+function gameLoop(timestamp) {
     if (!gameRunning) return;
     
-    const currentTime = Date.now();
-    const timeSinceStart = currentTime - gameStartTime;
+    // Calculate delta time for smooth animation
+    const deltaTime = timestamp - lastFrameTime;
+    lastFrameTime = timestamp;
     
-    // Only apply gravity after the initial delay
-    if (timeSinceStart > gravityDelay) {
-        velocity += gravity;
+    // Apply gravity only when active
+    if (gravityActive) {
+        velocity += gravity * (deltaTime / 16.67); // Normalize to 60fps
     }
     
-    position += velocity;
+    position += velocity * (deltaTime / 16.67); // Normalize movement
     
     // Update orange position
     updateOrangePosition();
     
-    // Check for collisions
+    // Check collisions
     if (checkCollision()) {
         endGame();
         return;
     }
     
     // Generate pipes
-    if (currentTime - lastPipeTime > pipeFrequency) {
+    if (performance.now() - lastPipeTime > pipeFrequency) {
         createPipe();
-        lastPipeTime = currentTime;
+        lastPipeTime = performance.now();
     }
     
     // Move pipes
@@ -154,20 +153,23 @@ function updateOrangePosition() {
     // Keep orange within bounds
     if (position < orangeRadius) {
         position = orangeRadius;
+        velocity = 0;
         if (gameRunning) endGame();
     }
     if (position > gameAreaHeight - orangeRadius) {
         position = gameAreaHeight - orangeRadius;
+        velocity = 0;
         if (gameRunning) endGame();
     }
     
-    // Apply rotation based on velocity
+    // Apply rotation
     const rotation = Math.min(Math.max(velocity * 3, -30), 30);
     orange.style.transform = `translateY(${position}px) rotate(${rotation}deg)`;
 }
 
 function flap() {
-    velocity = -10; // Strong flap to make the game more responsive
+    velocity = -10; // Consistent flap strength
+    gravityActive = true; // Ensure gravity is always active after first flap
 }
 
 function createPipe() {
@@ -226,15 +228,15 @@ function movePipes() {
                 scoreDisplay.textContent = score;
                 pipe.passed = true;
                 
-                // Increase difficulty as score increases
+                // Increase difficulty
                 if (score % 5 === 0) {
                     pipeFrequency = Math.max(1000, pipeFrequency - 100);
-                    pipeGap = Math.max(120, pipeGap - 10);
+                    pipeGap = Math.max(120, pipeGap - 5);
                 }
             }
         }
         
-        // Remove pipes that are off screen
+        // Remove off-screen pipes
         if (pipe.x < -pipe.width) {
             pipesContainer.removeChild(pipe.element);
             pipes.splice(i, 1);
@@ -243,31 +245,20 @@ function movePipes() {
 }
 
 function checkCollision() {
-    // Orange boundaries (100px from left, 25px radius)
     const orangeTop = position - orangeRadius;
     const orangeBottom = position + orangeRadius;
     const orangeLeft = 100 - orangeRadius;
     const orangeRight = 100 + orangeRadius;
     
-    // Check pipe collisions
     for (const pipe of pipes) {
         const pipeLeft = pipe.x;
         const pipeRight = pipe.x + pipe.width;
         
-        // Check if orange is within pipe's x-range
         if (orangeRight > pipeLeft && orangeLeft < pipeRight) {
             if (pipe.top) {
-                // Top pipe collision check
-                const pipeBottom = pipe.height;
-                if (orangeTop < pipeBottom) {
-                    return true;
-                }
+                if (orangeTop < pipe.height) return true;
             } else {
-                // Bottom pipe collision check
-                const pipeTop = gameAreaHeight - pipe.height;
-                if (orangeBottom > pipeTop) {
-                    return true;
-                }
+                if (orangeBottom > (gameAreaHeight - pipe.height)) return true;
             }
         }
     }
@@ -280,11 +271,7 @@ function endGame() {
     finalScoreDisplay.textContent = score;
     gameScreen.classList.add('hidden');
     gameOverScreen.classList.remove('hidden');
-    
-    // Cancel the animation frame
-    if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-    }
+    cancelAnimationFrame(animationFrameId);
 }
 
 function shareScore() {
@@ -293,6 +280,6 @@ function shareScore() {
     window.open(tweetUrl, '_blank');
 }
 
-// Initialize game on load
+// Initialize
 window.addEventListener('load', initGameArea);
 window.addEventListener('resize', initGameArea);
