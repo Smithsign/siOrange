@@ -1,5 +1,6 @@
 // Game elements
 const startScreen = document.getElementById('start-screen');
+const countdownScreen = document.getElementById('countdown-screen');
 const gameScreen = document.getElementById('game-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
 const startButton = document.getElementById('start-button');
@@ -9,13 +10,14 @@ const orange = document.getElementById('orange');
 const pipesContainer = document.getElementById('pipes-container');
 const scoreDisplay = document.getElementById('score-display');
 const finalScoreDisplay = document.getElementById('final-score');
+const countdownElement = document.getElementById('countdown');
 
 // Game variables
 let gameRunning = false;
 let score = 0;
 let gravity = 0.5;
 let velocity = 0;
-let position = 300;
+let position = 0;
 let pipeInterval;
 let gameAreaHeight = 600;
 let gameAreaWidth = 400;
@@ -23,6 +25,8 @@ let pipeGap = 200;
 let pipeFrequency = 1500; // milliseconds
 let lastPipeTime = 0;
 let pipes = [];
+let countdown = 3;
+let countdownInterval;
 
 // Initialize game area dimensions
 function initGameArea() {
@@ -34,8 +38,8 @@ function initGameArea() {
 }
 
 // Event listeners
-startButton.addEventListener('click', startGame);
-tryAgainButton.addEventListener('click', startGame);
+startButton.addEventListener('click', startCountdown);
+tryAgainButton.addEventListener('click', startCountdown);
 shareButton.addEventListener('click', shareScore);
 
 // Keyboard and touch controls
@@ -52,9 +56,8 @@ gameScreen.addEventListener('click', () => {
 });
 
 // Game functions
-function startGame() {
+function startCountdown() {
     // Reset game state
-    gameRunning = true;
     score = 0;
     scoreDisplay.textContent = score;
     position = gameAreaHeight / 2;
@@ -64,10 +67,35 @@ function startGame() {
     pipesContainer.innerHTML = '';
     pipes = [];
     
-    // Show game screen
+    // Show countdown screen
     startScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
+    gameScreen.classList.add('hidden');
+    countdownScreen.classList.remove('hidden');
+    
+    // Start countdown
+    countdown = 3;
+    countdownElement.textContent = countdown;
+    
+    countdownInterval = setInterval(() => {
+        countdown--;
+        countdownElement.textContent = countdown;
+        
+        if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            startGame();
+        }
+    }, 1000);
+}
+
+function startGame() {
+    gameRunning = true;
+    countdownScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
+    
+    // Reset orange position
+    position = gameAreaHeight / 2;
+    updateOrangePosition();
     
     // Start game loop
     lastPipeTime = Date.now() - pipeFrequency;
@@ -165,7 +193,7 @@ function movePipes() {
         pipe.element.style.left = `${pipe.x}px`;
         
         // Check if pipe is passed
-        if (!pipe.passed && pipe.x < 50 - 30) { // 50 is orange position, 30 is half pipe width
+        if (!pipe.passed && pipe.x < (gameAreaWidth * 0.25) - 30) { // 25% is orange position, 30 is half pipe width
             if (pipe.top) {
                 score++;
                 scoreDisplay.textContent = score;
@@ -182,11 +210,11 @@ function movePipes() {
 }
 
 function checkCollision() {
-    // Orange boundaries
+    // Orange boundaries (25% from left)
     const orangeTop = position;
     const orangeBottom = position + 40;
-    const orangeLeft = 50;
-    const orangeRight = 50 + 40;
+    const orangeLeft = gameAreaWidth * 0.25;
+    const orangeRight = gameAreaWidth * 0.25 + 40;
     
     // Check pipe collisions
     for (const pipe of pipes) {
