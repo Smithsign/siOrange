@@ -26,6 +26,8 @@ let lastPipeTime = 0;
 let pipes = [];
 let countdown = 3;
 let countdownInterval;
+let animationFrameId;
+let orangeRadius = 25; // Half of the orange's width/height
 
 // Initialize game area dimensions
 function initGameArea() {
@@ -68,6 +70,11 @@ function startCountdown() {
     pipesContainer.innerHTML = '';
     pipes = [];
     
+    // Cancel any existing animation frame
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+    }
+    
     // Show countdown screen
     startScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
@@ -100,7 +107,7 @@ function startGame() {
     
     // Start game loop
     lastPipeTime = Date.now() - pipeFrequency;
-    requestAnimationFrame(gameLoop);
+    gameLoop();
 }
 
 function gameLoop() {
@@ -130,14 +137,17 @@ function gameLoop() {
     movePipes();
     
     // Continue loop
-    requestAnimationFrame(gameLoop);
+    animationFrameId = requestAnimationFrame(gameLoop);
 }
 
 function updateOrangePosition() {
     // Keep orange within bounds
-    if (position < 25) position = 25;
-    if (position > gameAreaHeight - 25) {
-        position = gameAreaHeight - 25;
+    if (position < orangeRadius) {
+        position = orangeRadius;
+        if (gameRunning) endGame();
+    }
+    if (position > gameAreaHeight - orangeRadius) {
+        position = gameAreaHeight - orangeRadius;
         if (gameRunning) endGame();
     }
     
@@ -177,6 +187,7 @@ function createPipe() {
     pipes.push({
         element: topPipe,
         x: gameAreaWidth,
+        width: 80,
         height: pipeTopHeight,
         top: true,
         passed: false
@@ -185,6 +196,7 @@ function createPipe() {
     pipes.push({
         element: bottomPipe,
         x: gameAreaWidth,
+        width: 80,
         height: pipeBottomHeight,
         top: false,
         passed: false
@@ -203,11 +215,17 @@ function movePipes() {
                 score++;
                 scoreDisplay.textContent = score;
                 pipe.passed = true;
+                
+                // Increase difficulty as score increases
+                if (score % 5 === 0) {
+                    pipeFrequency = Math.max(1000, pipeFrequency - 100);
+                    pipeGap = Math.max(120, pipeGap - 10);
+                }
             }
         }
         
         // Remove pipes that are off screen
-        if (pipe.x < -80) {
+        if (pipe.x < -pipe.width) {
             pipesContainer.removeChild(pipe.element);
             pipes.splice(i, 1);
         }
@@ -216,31 +234,26 @@ function movePipes() {
 
 function checkCollision() {
     // Orange boundaries (100px from left, 25px radius)
-    const orangeTop = position - 25;
-    const orangeBottom = position + 25;
-    const orangeLeft = 100 - 25;
-    const orangeRight = 100 + 25;
-    
-    // Ground/ceiling check
-    if (orangeTop <= 0 || orangeBottom >= gameAreaHeight) {
-        return true;
-    }
+    const orangeTop = position - orangeRadius;
+    const orangeBottom = position + orangeRadius;
+    const orangeLeft = 100 - orangeRadius;
+    const orangeRight = 100 + orangeRadius;
     
     // Check pipe collisions
     for (const pipe of pipes) {
         const pipeLeft = pipe.x;
-        const pipeRight = pipe.x + 80;
+        const pipeRight = pipe.x + pipe.width;
         
         // Check if orange is within pipe's x-range
         if (orangeRight > pipeLeft && orangeLeft < pipeRight) {
             if (pipe.top) {
-                // Top pipe
+                // Top pipe collision check
                 const pipeBottom = pipe.height;
                 if (orangeTop < pipeBottom) {
                     return true;
                 }
             } else {
-                // Bottom pipe
+                // Bottom pipe collision check
                 const pipeTop = gameAreaHeight - pipe.height;
                 if (orangeBottom > pipeTop) {
                     return true;
@@ -257,6 +270,11 @@ function endGame() {
     finalScoreDisplay.textContent = score;
     gameScreen.classList.add('hidden');
     gameOverScreen.classList.remove('hidden');
+    
+    // Cancel the animation frame
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+    }
 }
 
 function shareScore() {
