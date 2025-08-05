@@ -27,7 +27,10 @@ let pipes = [];
 let countdown = 3;
 let countdownInterval;
 let animationFrameId;
-let orangeRadius = 25; // Half of the orange's width/height
+let orangeRadius = 25;
+let gameStartTime = 0;
+let gravityDelay = 500; // 0.5 second delay before gravity starts
+let initialBoost = -8; // Initial upward boost when game starts
 
 // Initialize game area dimensions
 function initGameArea() {
@@ -98,11 +101,13 @@ function startCountdown() {
 
 function startGame() {
     gameRunning = true;
+    gameStartTime = Date.now();
     countdownScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
     
-    // Reset orange position
+    // Reset orange position with initial upward boost
     position = gameAreaHeight / 2;
+    velocity = initialBoost;
     updateOrangePosition();
     
     // Start game loop
@@ -113,8 +118,14 @@ function startGame() {
 function gameLoop() {
     if (!gameRunning) return;
     
-    // Apply gravity
-    velocity += gravity;
+    const currentTime = Date.now();
+    const timeSinceStart = currentTime - gameStartTime;
+    
+    // Only apply gravity after the initial delay
+    if (timeSinceStart > gravityDelay) {
+        velocity += gravity;
+    }
+    
     position += velocity;
     
     // Update orange position
@@ -127,7 +138,6 @@ function gameLoop() {
     }
     
     // Generate pipes
-    const currentTime = Date.now();
     if (currentTime - lastPipeTime > pipeFrequency) {
         createPipe();
         lastPipeTime = currentTime;
@@ -157,7 +167,7 @@ function updateOrangePosition() {
 }
 
 function flap() {
-    velocity = -10;
+    velocity = -10; // Strong flap to make the game more responsive
 }
 
 function createPipe() {
